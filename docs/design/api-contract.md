@@ -15,3 +15,12 @@ Errors:
 
 ## GET /api/posts?page=n
 Success: 200 { posts: PostPublic[], page: number, hasMore: boolean }
+
+## POST /api/posts/:id/comments
+Request: { body: string }
+Success: 201 { comment: CommentPublic }
+Errors:
+  401 NOT_AUTHENTICATED         — "You must be logged in to comment."
+  400 EMPTY_COMMENT_BODY        — "Comment body must not be empty."
+  400 COMMENT_TOO_LONG          — "Comment exceeds the maximum allowed length."
+  404 POST_NOT_FOUND            — "This post does not exist or is not published."
