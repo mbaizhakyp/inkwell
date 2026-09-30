@@ -7,6 +7,7 @@
 // a deliberate, documented exception, not an oversight.
 
 import { Router } from "express";
+import { getStats } from "../events/listeners/post-stats.listener.js";
 
 const router = Router();
 
@@ -18,6 +19,12 @@ router.get("/health", (req, res) => {
 // the refactor does not change externally observable behavior.
 router.get("/version", (req, res) => {
   res.status(200).json({ version: "0.1.0" });
+});
+
+// GET /api/stats (Lecture 9, Exercise 1): exposes the post-stats
+// listener's in-memory counter.
+router.get("/stats", (req, res) => {
+  res.status(200).json(getStats());
 });
 
 export default router;
