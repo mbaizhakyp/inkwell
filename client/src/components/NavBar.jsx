@@ -9,7 +9,10 @@ import { NavLink } from "react-router-dom";
 export function NavBar() {
   return (
     <nav className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-      <span className="font-bold text-lg">Inkwell</span>
+      <span className="font-bold text-lg">
+        <img src="/inkwell.svg" alt="" className="inline h-5 w-5 mr-1 align-text-bottom" />
+        Inkwell
+      </span>
       <div className="flex gap-4">
         <NavLink
           to="/"
