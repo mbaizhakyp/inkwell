@@ -16,7 +16,7 @@
 - End-to-end tests: critical user flows, mobile + tablet + desktop viewports (Playwright) — ACTIVE (Lecture 14)
 - Automated accessibility checks (axe-core) — ACTIVE (Lecture 14)
 - Documentation verification (README, Section 4.10) — ACTIVE (Lecture 14)
-- Security testing — starting Lecture 15
+- Security testing: STRIDE threat model + security regression tests (Supertest, RTL) — ACTIVE (Lecture 15), see docs/security/THREAT-MODEL.md
 - Performance/load testing — deferred; revisit at Lecture 19-20 (architecture scale-out)
 
 ## Defect Tracking

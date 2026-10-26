@@ -17,9 +17,10 @@ class InvalidCredentialsError extends Error {}
 const BCRYPT_COST_FACTOR = 10; // see Lecture 15 for the security tradeoff this number encodes
 const MIN_PASSWORD_LENGTH = 8;
 
-// UserPublic (Lecture 4 API contract): never expose passwordHash —
-// information hiding applies to API responses too (Lecture 7, Exercise 1).
-function toPublicUser({ id, email, displayName }) {
+// The caller's OWN account (register/login responses): includes email,
+// never passwordHash. Other users are shaped by dto/user.dto.js's
+// stricter toPublicUser (Lecture 15).
+function toOwnAccountUser({ id, email, displayName }) {
   return { id, email, displayName };
 }
 
@@ -51,7 +52,7 @@ export const AuthService = {
     }
 
     const tokens = TokenService.issueTokens(user);
-    return { user: toPublicUser(user), ...tokens };
+    return { user: toOwnAccountUser(user), ...tokens };
   },
 
   async login({ email, password }) {
@@ -66,7 +67,7 @@ export const AuthService = {
     }
 
     const tokens = TokenService.issueTokens(user);
-    return { user: toPublicUser(user), ...tokens };
+    return { user: toOwnAccountUser(user), ...tokens };
   },
 };
 

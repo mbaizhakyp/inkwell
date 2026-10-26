@@ -1,12 +1,8 @@
 // client/src/lib/auth.js
 //
-// Verification fix: PostEditor needs to know the logged-in user's id to
-// send as authorId — the server doesn't derive identity from the token
-// itself until Lecture 15's requireAuth middleware, so until then the
-// client is the only source of authorId. Without this, every real
-// publish attempt fails server-side with a Prisma
-// "Argument `author` is missing" error, invisible to every prior unit
-// and integration test because they all supplied authorId directly.
+// Minimal token + current-user storage. The stored user is for display
+// only — since Lecture 15 the server takes identity from the bearer token
+// (requireAuth), never from anything the client sends.
 
 const TOKEN_KEY = "inkwell_access_token";
 const USER_KEY = "inkwell_user";

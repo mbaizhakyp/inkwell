@@ -1,6 +1,7 @@
 // server/src/repositories/post.repository.js
 
 import { prisma } from "../db/client.js";
+import { toPublicUser } from "../dto/user.dto.js";
 
 export const PostRepository = {
   create({ authorId, title, body, status, publishedAt }) {
@@ -27,32 +28,38 @@ export const PostRepository = {
     });
   },
 
-  async searchPublished({ query, page, pageSize }) {
-    const where = {
-      status: "PUBLISHED",
-      OR: [
-        { title: { contains: query, mode: "insensitive" } },
-        { body: { contains: query, mode: "insensitive" } },
-      ],
-    };
-    const rows = await prisma.post.findMany({
-      where,
-      orderBy: { publishedAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize + 1,
-    });
-    const hasMore = rows.length > pageSize;
-    return { posts: rows.slice(0, pageSize), hasMore };
+  searchPublished({ query, page, pageSize }) {
+    return findPublishedPage(
+      {
+        status: "PUBLISHED",
+        OR: [
+          { title: { contains: query, mode: "insensitive" } },
+          { body: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      { page, pageSize }
+    );
   },
 
-  async findPublished({ page, pageSize }) {
-    const rows = await prisma.post.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { publishedAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize + 1, // fetch one extra row to compute hasMore
-    });
-    const hasMore = rows.length > pageSize;
-    return { posts: rows.slice(0, pageSize), hasMore };
+  findPublished({ page, pageSize }) {
+    return findPublishedPage({ status: "PUBLISHED" }, { page, pageSize });
   },
 };
+
+// Shared by the feed and search (Lecture 15): includes each post's author
+// and passes it through the allowlist DTO, so neither query can leak an
+// author's email or passwordHash.
+async function findPublishedPage(where, { page, pageSize }) {
+  const rows = await prisma.post.findMany({
+    where,
+    include: { author: true },
+    orderBy: { publishedAt: "desc" },
+    skip: (page - 1) * pageSize,
+    take: pageSize + 1, // fetch one extra row to compute hasMore
+  });
+  const hasMore = rows.length > pageSize;
+  return {
+    posts: rows.slice(0, pageSize).map((post) => ({ ...post, author: toPublicUser(post.author) })),
+    hasMore,
+  };
+}

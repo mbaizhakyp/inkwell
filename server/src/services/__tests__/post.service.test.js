@@ -2,7 +2,7 @@
 
 import { jest } from "@jest/globals";
 
-const mockPostRepository = { createWithTags: jest.fn(), searchPublished: jest.fn() };
+const mockPostRepository = { createWithTags: jest.fn(), searchPublished: jest.fn(), findPublished: jest.fn() };
 const mockEventBus = { emit: jest.fn() };
 
 jest.unstable_mockModule("../../repositories/post.repository.js", () => ({
@@ -12,7 +12,7 @@ jest.unstable_mockModule("../../events/event-bus.js", () => ({
   EventBus: mockEventBus,
 }));
 
-const { PostService } = await import("../post.service.js");
+const { PostService, MAX_PAGE_SIZE } = await import("../post.service.js");
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -79,5 +79,32 @@ describe("PostService.search", () => {
       page: 3,
       pageSize: 5,
     });
+  });
+});
+
+// Lecture 15, Exercise 1: DoS mitigation — client-controlled paging is clamped.
+describe("PostService paging limits", () => {
+  test("clamps an oversized pageSize on the feed to MAX_PAGE_SIZE", async () => {
+    mockPostRepository.findPublished.mockResolvedValue({ posts: [], hasMore: false });
+
+    await PostService.listPublished({ page: 1, pageSize: 1_000_000 });
+
+    expect(mockPostRepository.findPublished).toHaveBeenCalledWith({ page: 1, pageSize: MAX_PAGE_SIZE });
+  });
+
+  test("clamps an oversized pageSize on search too", async () => {
+    mockPostRepository.searchPublished.mockResolvedValue({ posts: [], hasMore: false });
+
+    await PostService.search({ query: "q", pageSize: "99999" });
+
+    expect(mockPostRepository.searchPublished).toHaveBeenCalledWith({ query: "q", page: 1, pageSize: MAX_PAGE_SIZE });
+  });
+
+  test("clamps a non-positive page and pageSize up to 1", async () => {
+    mockPostRepository.findPublished.mockResolvedValue({ posts: [], hasMore: false });
+
+    await PostService.listPublished({ page: -5, pageSize: -5 });
+
+    expect(mockPostRepository.findPublished).toHaveBeenCalledWith({ page: 1, pageSize: 1 });
   });
 });

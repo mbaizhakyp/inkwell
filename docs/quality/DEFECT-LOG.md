@@ -8,3 +8,6 @@
 | D-004 | Lecture 14 E2E/axe review | Accessibility | No page had an h1 since Lecture 7's Router rewrite (WCAG heading structure) | h1 added to Feed, Write, and Log In pages |
 | D-005 | Lecture 14 README verification | Build/setup | Fresh clone crashed on boot: nothing in the documented setup ran `prisma generate` | `postinstall: prisma generate` in server/package.json |
 | D-006 | Lecture 14 README verification | Configuration | server/.env.test was not gitignored (`.gitignore` matched only `.env`) | `.gitignore` now ignores `.env*`, re-includes `.env.example` |
+| D-007 | Lecture 15 threat model | Security (Spoofing) | POST /api/posts trusted the client-supplied authorId, letting any caller publish as any user | requireAuth middleware; author taken from the verified token |
+| D-008 | Lecture 15 threat model | Security (Broken Auth) | No limit on failed logins enabled brute-force credential guessing | Account-keyed rate limiter: 5 failures / 10 min |
+| D-009 | Lecture 15, Exercise 1 | Input validation | `?page=-1` produced a negative DB offset (500); paging was otherwise unbounded once exposed | Paging clamped in PostService (page ≥ 1, 1 ≤ pageSize ≤ 50) |

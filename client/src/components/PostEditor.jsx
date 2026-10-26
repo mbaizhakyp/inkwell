@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken, getUser } from "../lib/auth";
+import { getToken } from "../lib/auth";
 
 const STATES = { IDLE: "idle", EDITING: "editing", PUBLISHING: "publishing" };
 
@@ -29,9 +29,9 @@ export function PostEditor() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        // authorId added here: without it every publish attempt fails
-        // server-side (see the auth.js note).
-        body: JSON.stringify({ title, body, authorId: getUser()?.id }),
+        // No authorId: since Lecture 15 the server derives the author from
+        // the bearer token and ignores any client-supplied identity.
+        body: JSON.stringify({ title, body }),
       });
 
       if (!response.ok) {
