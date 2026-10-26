@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken } from "../lib/auth";
+import { getToken, getUser } from "../lib/auth";
 
 const STATES = { IDLE: "idle", EDITING: "editing", PUBLISHING: "publishing" };
 
@@ -29,7 +29,9 @@ export function PostEditor() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ title, body }),
+        // authorId added here: without it every publish attempt fails
+        // server-side (see the auth.js note).
+        body: JSON.stringify({ title, body, authorId: getUser()?.id }),
       });
 
       if (!response.ok) {
@@ -47,7 +49,9 @@ export function PostEditor() {
   }
 
   return (
-    <form
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Write a new post</h1>
+      <form
       className="space-y-4"
       onSubmit={(e) => { e.preventDefault(); handlePublish(); }}
     >
@@ -90,6 +94,7 @@ export function PostEditor() {
       >
         {status === STATES.PUBLISHING ? "Publishing…" : "Publish"}
       </button>
-    </form>
+      </form>
+    </div>
   );
 }

@@ -24,12 +24,15 @@ Requires Node.js 22+ (see server/package.json engines) and Docker.
 docker run --name inkwell-postgres \
   -e POSTGRES_USER=inkwell -e POSTGRES_PASSWORD=inkwell \
   -e POSTGRES_DB=inkwell_dev -p 5432:5432 -d postgres:16
+# "port is already allocated"? Another Postgres owns 5432 — publish on a
+# free port instead (e.g. -p 5433:5432) and use that port in every
+# DATABASE_URL below.
 
 # server environment (gitignored; copy the example and set your DB URL)
 cp server/.env.example server/.env
 # e.g. DATABASE_URL="postgresql://inkwell:inkwell@localhost:5432/inkwell_dev"
 
-# apply migrations
+# install (postinstall runs `prisma generate`) and apply migrations
 cd server && npm install && npx prisma migrate dev
 
 # terminal 1 — API server (port 4000)
@@ -61,6 +64,16 @@ cd server && DATABASE_URL="postgresql://inkwell:inkwell@localhost:5432/inkwell_t
 Then:
 
 ```
-cd server && npm test     # unit + integration (Jest/Supertest, loads .env.test)
+cd server && npm test         # unit + integration (Jest/Supertest, loads .env.test)
 cd client && npx vitest run   # component tests (RTL)
+```
+
+End-to-end and accessibility tests (Lecture 14) run from the repo root
+with Playwright. They start both dev servers automatically (or reuse
+running ones) and use the dev database. One-time setup:
+
+```
+npm install                          # repo root: Playwright + axe-core
+npx playwright install chromium
+npx playwright test                  # mobile/tablet/desktop publish flow + axe scan
 ```

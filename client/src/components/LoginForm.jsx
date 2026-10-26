@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { saveToken } from "../lib/auth";
+import { saveToken, saveUser } from "../lib/auth";
 
 const STATES = { IDLE: "idle", SUBMITTING: "submitting" };
 
@@ -36,8 +36,9 @@ export function LoginForm() {
         return;
       }
 
-      const { accessToken } = await response.json();
+      const { accessToken, user } = await response.json();
       saveToken(accessToken);
+      saveUser(user);
       navigate("/");
     } catch {
       setErrorMessage("Something went wrong. Please try again.");
@@ -46,7 +47,9 @@ export function LoginForm() {
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleLogin}>
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Log In</h1>
+      <form className="space-y-4" onSubmit={handleLogin}>
       <div>
         <label htmlFor="login-email" className="block text-sm font-medium text-gray-700">
           Email
@@ -83,10 +86,11 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={status === STATES.SUBMITTING}
-        className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50"
+        className="w-full md:w-auto min-h-[44px] rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50"
       >
         {status === STATES.SUBMITTING ? "Logging in…" : "Log In"}
       </button>
-    </form>
+      </form>
+    </div>
   );
 }

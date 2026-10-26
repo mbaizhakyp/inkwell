@@ -8,6 +8,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "node --watch --env-file=.env src/index.js",
     "test": "node --experimental-vm-modules --env-file=.env.test node_modules/.bin/jest"
   },
