@@ -89,3 +89,31 @@ test("Denial of service: GET /api/posts clamps an oversized pageSize to 50", asy
   expect(res.body.posts).toHaveLength(50);
   expect(res.body.hasMore).toBe(true);
 });
+
+// Lecture 16, A05 (Security Misconfiguration): these reproduce leaks found
+// during the OWASP review.
+test("A05: a malformed tag is a 400 validation error, never a Prisma internals dump", async () => {
+  const alice = await register("alice@example.com", "Alice");
+
+  const res = await request(app)
+    .post("/api/posts")
+    .set("Authorization", `Bearer ${alice.accessToken}`)
+    .send({ title: "t", body: "b", tagNames: [123] });
+
+  expect(res.status).toBe(400);
+  expect(res.body.error.code).toBe("INVALID_TAGS");
+  expect(JSON.stringify(res.body)).not.toMatch(/prisma/i);
+});
+
+test("A05: responses do not advertise the server framework", async () => {
+  const res = await request(app).get("/api/health");
+
+  expect(res.headers["x-powered-by"]).toBeUndefined();
+});
+
+test("A05: a login with no email is a 400 validation error, not a database error", async () => {
+  const res = await request(app).post("/api/auth/login").send({ password: "whatever" });
+
+  expect(res.status).toBe(400);
+  expect(res.body.error.code).toBe("MISSING_EMAIL");
+});

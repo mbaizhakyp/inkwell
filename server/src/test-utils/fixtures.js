@@ -2,6 +2,7 @@
 
 import { prisma } from "../db/client.js";
 import bcrypt from "bcrypt";
+import { TokenService } from "../services/token.service.js";
 
 let userCounter = 0;
 
@@ -12,6 +13,27 @@ export async function createTestUser({ email, password = "correcthorse" } = {}) 
   return prisma.user.create({
     data: { email: resolvedEmail, displayName: "Test User", passwordHash, isVerified: true },
   });
+}
+
+export async function createTestPost({ authorId, tagNames = [] }) {
+  return prisma.post.create({
+    data: {
+      authorId,
+      title: "Fixture post",
+      body: "Fixture body",
+      status: "PUBLISHED",
+      publishedAt: new Date(),
+      tags: {
+        create: tagNames.map((name) => ({
+          tag: { connectOrCreate: { where: { name }, create: { name } } },
+        })),
+      },
+    },
+  });
+}
+
+export function tokenFor(user) {
+  return TokenService.issueTokens(user).accessToken;
 }
 
 export async function resetDatabase() {

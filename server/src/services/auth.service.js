@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import { UserRepository } from "../repositories/user.repository.js";
 import { assertNonEmpty, ValidationError } from "../utils/validation.js";
 import { TokenService } from "./token.service.js";
+import { logger } from "../lib/logger.js";
 
 class EmailAlreadyRegisteredError extends Error {}
 class WeakPasswordError extends Error {}
@@ -56,13 +57,17 @@ export const AuthService = {
   },
 
   async login({ email, password }) {
-    const user = await UserRepository.findByEmail(email);
-    if (!user) {
-      throw new InvalidCredentialsError();
-    }
+    assertNonEmpty(email, "email", "MISSING_EMAIL");
+    assertNonEmpty(password, "password", "MISSING_PASSWORD");
 
-    const matches = await bcrypt.compare(password, user.passwordHash);
-    if (!matches) {
+    const user = await UserRepository.findByEmail(email);
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+      // A09's fix: a failed login is a structured, leveled, machine-
+      // parseable event (searchable by "event" or "email" once aggregated),
+      // not a silent failure only the requester ever sees. Never log the
+      // password. Same error either way, so callers can't tell which half
+      // was wrong.
+      logger.warn({ event: "auth.login.failed", email }, "Failed login attempt");
       throw new InvalidCredentialsError();
     }
 

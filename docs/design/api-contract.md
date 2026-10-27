@@ -16,6 +16,14 @@ Errors:
 ## GET /api/posts?page=n
 Success: 200 { posts: PostPublic[], page: number, hasMore: boolean }
 
+## DELETE /api/posts/:id
+Auth: Bearer access token (owner only)
+Success: 204 (no body)
+Errors:
+  401 UNAUTHENTICATED           — "Missing or invalid Authorization header."
+  403 FORBIDDEN                 — "You can only delete your own posts."
+  404 NOT_FOUND                 — "Post not found."
+
 ## POST /api/posts/:id/comments
 Request: { body: string }
 Success: 201 { comment: CommentPublic }

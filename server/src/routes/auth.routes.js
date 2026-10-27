@@ -1,12 +1,12 @@
 // server/src/routes/auth.routes.js
 
 import { Router } from "express";
-import { AuthService, EmailAlreadyRegisteredError, WeakPasswordError, InvalidCredentialsError } from "../services/auth.service.js";
+import { AuthService, EmailAlreadyRegisteredError, WeakPasswordError, InvalidCredentialsError, ValidationError } from "../services/auth.service.js";
 import { authRateLimiter } from "../middleware/rate-limit.middleware.js";
 
 const router = Router();
 
-router.post("/auth/register", authRateLimiter, async (req, res) => {
+router.post("/auth/register", authRateLimiter, async (req, res, next) => {
   try {
     const result = await AuthService.register(req.body);
     res.status(201).json(result);
@@ -17,11 +17,14 @@ router.post("/auth/register", authRateLimiter, async (req, res) => {
     if (err instanceof WeakPasswordError) {
       return res.status(400).json({ error: { code: "WEAK_PASSWORD", message: "Password does not meet strength requirements." } });
     }
-    res.status(400).json({ error: { code: err.code || "VALIDATION_ERROR", message: err.message } });
+    if (err instanceof ValidationError) {
+      return res.status(400).json({ error: { code: err.code, message: err.message } });
+    }
+    next(err);
   }
 });
 
-router.post("/auth/login", authRateLimiter, async (req, res) => {
+router.post("/auth/login", authRateLimiter, async (req, res, next) => {
   try {
     const result = await AuthService.login(req.body);
     res.status(200).json(result);
@@ -29,7 +32,10 @@ router.post("/auth/login", authRateLimiter, async (req, res) => {
     if (err instanceof InvalidCredentialsError) {
       return res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } });
     }
-    res.status(400).json({ error: { code: "BAD_REQUEST", message: err.message } });
+    if (err instanceof ValidationError) {
+      return res.status(400).json({ error: { code: err.code, message: err.message } });
+    }
+    next(err);
   }
 });
 

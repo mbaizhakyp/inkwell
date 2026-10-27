@@ -7,8 +7,19 @@
 
 import jwt from "jsonwebtoken";
 
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "dev-access-secret";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "dev-refresh-secret";
+// A02 (Lecture 16): no hardcoded fallback secrets. A missing secret is a
+// startup error, not a silent downgrade to a guessable, public string
+// that would let anyone forge tokens.
+function requireSecret(name) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is not set (generate one with: openssl rand -hex 32)`);
+  }
+  return value;
+}
+
+const ACCESS_TOKEN_SECRET = requireSecret("ACCESS_TOKEN_SECRET");
+const REFRESH_TOKEN_SECRET = requireSecret("REFRESH_TOKEN_SECRET");
 
 const ACCESS_TOKEN_TTL = "15m";
 const REFRESH_TOKEN_TTL = "7d";

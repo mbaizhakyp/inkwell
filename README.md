@@ -31,6 +31,8 @@ docker run --name inkwell-postgres \
 # server environment (gitignored; copy the example and set your DB URL)
 cp server/.env.example server/.env
 # e.g. DATABASE_URL="postgresql://inkwell:inkwell@localhost:5432/inkwell_dev"
+# and set ACCESS_TOKEN_SECRET / REFRESH_TOKEN_SECRET — required, the server
+# won't start without them. Generate each with: openssl rand -hex 32
 
 # install (postinstall runs `prisma generate`) and apply migrations
 cd server && npm install && npx prisma migrate dev
@@ -52,8 +54,12 @@ The server's integration tests (Lecture 13) use a dedicated database,
 docker exec inkwell-postgres psql -U inkwell -d inkwell_dev \
   -c "CREATE DATABASE inkwell_test"
 
-# create server/.env.test (gitignored, same rule as .env) pointing at it:
+# create server/.env.test (gitignored, same rule as .env) pointing at it,
+# with its own JWT secrets (openssl rand -hex 32):
 #   DATABASE_URL="postgresql://inkwell:inkwell@localhost:5432/inkwell_test"
+#   ACCESS_TOKEN_SECRET=...
+#   REFRESH_TOKEN_SECRET=...
+#   LOG_LEVEL=silent   (optional: keeps test output quiet)
 
 # apply migrations to the test database (the explicit DATABASE_URL matters —
 # without it, prisma reads .env and migrates inkwell_dev instead)

@@ -41,6 +41,14 @@ export const PostRepository = {
     );
   },
 
+  findById(id) {
+    return prisma.post.findUnique({ where: { id } });
+  },
+
+  deleteById(id) {
+    return prisma.post.delete({ where: { id } });
+  },
+
   findPublished({ page, pageSize }) {
     return findPublishedPage({ status: "PUBLISHED" }, { page, pageSize });
   },

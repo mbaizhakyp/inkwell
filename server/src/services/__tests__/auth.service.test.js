@@ -21,8 +21,10 @@ jest.unstable_mockModule("../../repositories/user.repository.js", () => ({
 jest.unstable_mockModule("../token.service.js", () => ({
   TokenService: mockTokenService,
 }));
+const mockLogger = { warn: jest.fn() };
+jest.unstable_mockModule("../../lib/logger.js", () => ({ logger: mockLogger }));
 
-const { AuthService, EmailAlreadyRegisteredError, WeakPasswordError, ValidationError } =
+const { AuthService, EmailAlreadyRegisteredError, WeakPasswordError, InvalidCredentialsError, ValidationError } =
   await import("../auth.service.js");
 
 beforeEach(() => {
@@ -82,5 +84,22 @@ describe("AuthService.register", () => {
     await expect(
       AuthService.register({ email: "a@x.com", displayName: "Alice", password: "correcthorse" })
     ).rejects.toBeInstanceOf(EmailAlreadyRegisteredError);
+  });
+});
+
+// Lecture 16, A09: a failed login is a recorded, structured event.
+describe("AuthService.login security logging", () => {
+  test("logs a structured auth.login.failed event, without the password", async () => {
+    mockUserRepository.findByEmail.mockResolvedValue(null);
+
+    await expect(
+      AuthService.login({ email: "who@x.com", password: "guess-123" })
+    ).rejects.toBeInstanceOf(InvalidCredentialsError);
+
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      { event: "auth.login.failed", email: "who@x.com" },
+      "Failed login attempt"
+    );
+    expect(JSON.stringify(mockLogger.warn.mock.calls)).not.toContain("guess-123");
   });
 });

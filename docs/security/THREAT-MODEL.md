@@ -5,6 +5,7 @@
 - POST /api/auth/login — unauthenticated, accepts email/password
 - POST /api/posts — authenticated, accepts title/body/tags
 - GET /api/posts — unauthenticated, returns paginated feed (optional `search`, `page`, `pageSize`)
+- DELETE /api/posts/:id — authenticated, owner only (Lecture 16)
 - JWT access tokens — bearer, sent in Authorization header
 
 ## STRIDE Analysis, with Risk Rating
@@ -25,6 +26,7 @@
 - 2026-10-26 — Lecture 15: Added rate limiting to login and register — keyed by account (email) and counting only failures, per the requirement's "five consecutive failures from the same account" wording.
 - 2026-10-26 — Lecture 15: Verified stored-XSS resistance with a regression test (`PostCard.security.test.jsx`).
 - 2026-10-26 — Lecture 15, Exercise 1: Clamped feed/search paging (`pageSize` ≤ 50, `page`/`pageSize` ≥ 1). Also fixes a latent bug: `?page=-1` previously produced a negative database offset and a 500.
+- 2026-10-27 — Lecture 16: OWASP Top 10 pass — see OWASP-TOP-10-REVIEW.md (fixed A02 forgeable tokens, A05 error leaks, A06 vulnerable dependencies, A09 missing auth logging; DELETE built owner-checked).
 
 ### Security Measurement Baseline
 - Live vulnerabilities found and remediated this pass: 3 — authorId spoofing (Critical), no brute-force protection on login (High), negative/unbounded paging (Medium).
