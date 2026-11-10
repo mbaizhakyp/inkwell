@@ -1,0 +1,48 @@
+# docker-compose.yml
+#
+# The server, database, network, and persistent storage in one reviewable,
+# version-controlled file: configuration management applied to local
+# infrastructure.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: inkwell
+      POSTGRES_PASSWORD: inkwell
+      POSTGRES_DB: inkwell_dev
+    ports:
+      - "5433:5432"
+      # Host port 5433 because another local PostgreSQL may already use 5432.
+      # The server doesn't use this mapping (it reaches db:5432 over Docker's
+      # internal network); it lets host tools connect: psql -h localhost -p 5433
+    volumes:
+      - inkwell_db_data:/var/lib/postgresql/data
+      # Named volume: data survives stopping or recreating the container.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inkwell -d inkwell_dev"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  server:
+    build: ./server
+    environment:
+      DATABASE_URL: postgresql://inkwell:inkwell@db:5432/inkwell_dev
+      # "db" is the service name above; Compose resolves it on its network.
+      #
+      # server/.env never enters the image (.dockerignore), so the token
+      # secrets come from the root .env at runtime — never written in this
+      # committed file. ":?" stops startup when a value is missing.
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:?set ACCESS_TOKEN_SECRET in .env}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?set REFRESH_TOKEN_SECRET in .env}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+        # Waits for the health check, not just container start; the
+        # entrypoint's retry loop is a second layer of protection.
+
+volumes:
+  inkwell_db_data:

@@ -44,6 +44,28 @@ cd server && npm run dev
 cd client && npm install && npm run dev
 ```
 
+## Running with Docker Compose
+
+Runs the API server and its own PostgreSQL in containers (Lecture 18) —
+no local Node or Postgres setup needed. One-time: create a root `.env`
+(gitignored) with the two token secrets:
+
+```
+echo "ACCESS_TOKEN_SECRET=$(openssl rand -hex 32)" > .env
+echo "REFRESH_TOKEN_SECRET=$(openssl rand -hex 32)" >> .env
+```
+
+Then:
+
+```
+docker compose up --build -d      # API on http://localhost:3000, migrations applied on start
+docker compose down               # stop; data persists in the inkwell_db_data volume
+docker compose down -v            # stop AND permanently delete the database volume
+```
+
+The Compose database publishes host port 5433 — stop any other container
+using that port (e.g. `docker stop inkwell-postgres`) before `up`.
+
 ## Running the tests
 
 The server's integration tests (Lecture 13) use a dedicated database,
