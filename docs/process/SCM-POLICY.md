@@ -45,3 +45,18 @@ lists every security change.
 - Every release is an annotated Git tag `vMAJOR.MINOR.PATCH` (Semantic
   Versioning), created only from a `main` commit whose checks pass.
 - Every tag has a matching entry in `CHANGELOG.md`.
+
+## CI Enforcement (Lecture 20)
+
+`main` is now a protected branch:
+- Required status checks: dependency-audit, server-tests, client-tests,
+  e2e-tests, docker-build
+- No direct pushes to main; all changes via pull request (verified: a
+  direct push is rejected with GH006)
+- Branches must be up to date with main before merging
+- The rule applies to administrators too
+- Required approvals: 0 — a solo developer cannot approve their own pull
+  request; the required checks are the gate
+- This turns Lecture 17's "main is always deployable" policy from a
+  documented intention into a mechanically enforced guarantee — a pull
+  request cannot merge until every required check passes.
