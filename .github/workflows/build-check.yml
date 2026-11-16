@@ -1,0 +1,43 @@
+# .github/workflows/build-check.yml
+#
+# Intentionally narrow in scope: just confirm the Docker image still
+# builds. Lecture 20 expands CI dramatically (ci.yml).
+
+name: Build Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Runs automatically whenever code is pushed to main, or a pull request
+  # targets main.
+
+permissions:
+  contents: read
+  # This workflow only reads the code, so its token gets read access and
+  # nothing else (least privilege, Lecture 15). A compromised step cannot
+  # push commits or edit issues.
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    # A GitHub-hosted runner: a fresh Ubuntu VM, provisioned and torn down
+    # automatically by GitHub.
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+        # A reusable action maintained by GitHub. "@v5" pins the major
+        # version (v4 targets the deprecated Node.js 20 runtime).
+
+      - name: Build the server Docker image
+        run: docker build -t inkwell-server:ci ./server
+        # The Lecture 18 Dockerfile, exactly as a developer would build it
+        # locally, now executed automatically on every push and PR.
+
+      - name: Confirm the image was built
+        run: docker image inspect inkwell-server:ci --format 'Built {{.Id}} ({{.Architecture}}, {{.Size}} bytes)'
+        # "docker image inspect" exits with an error if the image does not
+        # exist, so this step genuinely fails when there is no image.
+        # ("docker images" would not: it prints an empty table and still
+        # succeeds, so a check built on it could never fail.)
